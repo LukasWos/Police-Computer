@@ -1,0 +1,483 @@
+#include <limits>
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+class Document {
+protected:
+    string number;
+    bool stolen;
+
+public:
+    Document(const string& num, bool isStolen) : number(num), stolen(isStolen) {}
+
+    string getNumber() const { return number; }
+    void setNumber(const string& num) { number = num; }
+
+    bool isStolen() const { return stolen; }
+    void setStolen(bool isStolen) { stolen = isStolen; }
+
+    virtual void display() const = 0;
+};
+
+
+class Passport : public Document {
+private:
+    string country;
+    string firstName;
+    string lastName;
+
+public:
+    Passport(const string& num, const string& c, const string& first, const string& last, bool isStolen)
+        : Document(num, isStolen), country(c), firstName(first), lastName(last) {}
+
+    void display() const override {
+        cout << "Passport: " << number << endl;
+        cout << "Country: " << country << endl;
+        cout << "First Name: " << firstName << endl;
+        cout << "Last Name: " << lastName << endl;
+        cout << (stolen ? "Stolen: Yes" : "Stolen: No") << endl;
+    }
+
+    string getCountry() const { return country; }
+    void setCountry(const string& c) { country = c; }
+
+    string getFirstName() const { return firstName; }
+    void setFirstName(const string& first) { firstName = first; }
+
+    string getLastName() const { return lastName; }
+    void setLastName(const string& last) { lastName = last; }
+};
+
+class DrivingLicense : public Document {
+private:
+    string category;
+    string firstName;
+    string lastName;
+
+public:
+    DrivingLicense(const string& num, const string& cat, const string& first, const string& last, bool isStolen)
+        : Document(num, isStolen), category(cat), firstName(first), lastName(last) {}
+
+    void display() const override {
+        cout << "Driving License: " << number << endl;
+        cout << "Category: " << category << endl;
+        cout << "First Name: " << firstName << endl;
+        cout << "Last Name: " << lastName << endl;
+        cout << (stolen ? "Stolen: Yes" : "Stolen: No") << endl;
+    }
+
+    string getCategory() const { return category; }
+    void setCategory(const string& cat) { category = cat; }
+
+    string getFirstName() const { return firstName; }
+    void setFirstName(const string& first) { firstName = first; }
+
+    string getLastName() const { return lastName; }
+    void setLastName(const string& last) { lastName = last; }
+};
+
+class IdentityCard : public Document {
+private:
+    string issuingAuthority;
+    string firstName;
+    string lastName;
+
+public:
+    IdentityCard(const string& num, const string& authority, const string& first, const string& last, bool isStolen)
+        : Document(num, isStolen), issuingAuthority(authority), firstName(first), lastName(last) {}
+
+    void display() const override {
+        cout << "Identity Card: " << number << endl;
+        cout << "Issuing Authority: " << issuingAuthority << endl;
+        cout << "First Name: " << firstName << endl;
+        cout << "Last Name: " << lastName << endl;
+        cout << (stolen ? "Stolen: Yes" : "Stolen: No") << endl;
+    }
+
+    string getIssuingAuthority() const { return issuingAuthority; }
+    void setIssuingAuthority(const string& authority) { issuingAuthority = authority; }
+
+    string getFirstName() const { return firstName; }
+    void setFirstName(const string& first) { firstName = first; }
+
+    string getLastName() const { return lastName; }
+    void setLastName(const string& last) { lastName = last; }
+};
+
+int createDatabase(vector<Document*>& db) {
+    string documentNumber;
+    char choice;
+
+    do {
+        cout << "Enter the document number: ";
+        cin >> documentNumber;
+        // cchecking if document already exists
+        bool duplicateFound = false;
+        for (const auto& doc : db) {
+            if (doc->getNumber() == documentNumber) {
+                duplicateFound = true;
+                break;
+            }
+        }
+
+        if (duplicateFound) {
+            cout << "Error: Document with the same number already exists!\n";
+            continue; // Skip adding
+        }
+
+        char docType;
+        cout << "Enter the document type (P - Passport, D - Driving License, I - Identity Card): ";
+        cin >> docType;
+
+        string firstName, lastName;
+        cout << "Enter First Name: ";
+        cin >> firstName;
+        cout << "Enter Last Name: ";
+        cin >> lastName;
+
+        bool isStolen;
+        cout << "Is the document stolen? (0 - No, 1 - Yes): ";
+        cin >> isStolen;
+
+        switch (docType) {
+        case 'P':
+        {
+            string country;
+            cout << "Enter the country: ";
+            cin >> country;
+            db.push_back(new Passport(documentNumber, country, firstName, lastName, isStolen));
+            break;
+        }
+        case 'D':
+        {
+            string category;
+            cout << "Enter the category: ";
+            cin >> category;
+            db.push_back(new DrivingLicense(documentNumber, category, firstName, lastName, isStolen));
+            break;
+        }
+        case 'I':
+        {
+            string authority;
+            cout << "Enter the issuing authority: ";
+            cin >> authority;
+            db.push_back(new IdentityCard(documentNumber, authority, firstName, lastName, isStolen));
+            break;
+        }
+        default:
+            cout << "Invalid choice!\n";
+            break;
+        }
+
+        cout << "Do you want to add another document? (Y/N): ";
+        cin >> choice;
+    } while (choice == 'Y' || choice == 'y');
+
+    return db.size();
+}
+
+void showDocument(const Document* document) {
+    document->display();
+}
+
+void searchDocument(const vector<Document*>& db, int size) {
+    string num;
+    cout << "Enter the document number you want to search for: ";
+    cin >> num;
+
+    bool found = false;
+    for (int i = 0; i < size; i++) {
+        if (db[i]->getNumber() == num) {
+            showDocument(db[i]);
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Document not found!\n";
+    }
+}
+
+void updateDocument(vector<Document*>& db, int size) {
+    string num;
+    cout << "Enter the document number you want to update: ";
+    cin >> num;
+
+    bool found = false;
+    for (int i = 0; i < size; i++) {
+        if (db[i]->getNumber() == num) {
+            char choice;
+            cout << "What do you want to update?\n";
+            cout << "1. Document Number\n";
+            cout << "2. Stolen Status\n";
+            cout << "3. First Name\n";
+            cout << "4. Last Name\n";
+
+            // Additional update options specific to each document type
+            if (dynamic_cast<Passport*>(db[i]) != nullptr) {
+                cout << "5. Country\n";
+            }
+            else if (dynamic_cast<IdentityCard*>(db[i]) != nullptr) {
+                cout << "5. Issuing Authority\n";
+            }
+            else if (dynamic_cast<DrivingLicense*>(db[i]) != nullptr) {
+                cout << "5. Category\n";
+            }
+
+            cout << "Enter your choice: ";
+            cin >> choice;
+
+            switch (choice) {
+            case '1':
+            {
+                string newNum;
+                cout << "Enter the new document number: ";
+                cin >> newNum;
+                db[i]->setNumber(newNum);
+                break;
+            }
+            case '2':
+            {
+                bool isStolen;
+                cout << "Is the document stolen? (0 - No, 1 - Yes): ";
+                cin >> isStolen;
+                db[i]->setStolen(isStolen);
+                break;
+            }
+            case '3':
+            {
+                string newFirstName;
+                cout << "Enter the new first name: ";
+                cin >> newFirstName;
+                if (Passport* passport = dynamic_cast<Passport*>(db[i])) {
+                    passport->setFirstName(newFirstName);
+                }
+                else if (DrivingLicense* license = dynamic_cast<DrivingLicense*>(db[i])) {
+                    license->setFirstName(newFirstName);
+                }
+                else if (IdentityCard* idCard = dynamic_cast<IdentityCard*>(db[i])) {
+                    idCard->setFirstName(newFirstName);
+                }
+                break;
+            }
+            case '4':
+            {
+                string newLastName;
+                cout << "Enter the new last name: ";
+                cin >> newLastName;
+                if (Passport* passport = dynamic_cast<Passport*>(db[i])) {
+                    passport->setLastName(newLastName);
+                }
+                else if (DrivingLicense* license = dynamic_cast<DrivingLicense*>(db[i])) {
+                    license->setLastName(newLastName);
+                }
+                else if (IdentityCard* idCard = dynamic_cast<IdentityCard*>(db[i])) {
+                    idCard->setLastName(newLastName);
+                }
+                break;
+            }
+            case '5':
+            {
+                if (Passport* passport = dynamic_cast<Passport*>(db[i])) {
+                    string newCountry;
+                    cout << "Enter the new country: ";
+                    cin >> newCountry;
+                    passport->setCountry(newCountry);
+                }
+                else if (IdentityCard* idCard = dynamic_cast<IdentityCard*>(db[i])) {
+                    string newAuthority;
+                    cout << "Enter the new issuing authority: ";
+                    cin >> newAuthority;
+                    idCard->setIssuingAuthority(newAuthority);
+                }
+                else if (DrivingLicense* license = dynamic_cast<DrivingLicense*>(db[i])) {
+                    string newCategory;
+                    cout << "Enter the new category: ";
+                    cin >> newCategory;
+                    license->setCategory(newCategory);
+                }
+                break;
+            }
+            default:
+                cout << "Invalid choice!\n";
+                break;
+            }
+
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Document not found!\n";
+    }
+}
+
+
+void deleteDocument(vector<Document*>& db, int& size) {
+    string num;
+    cout << "Enter the document number you want to delete: ";
+    cin >> num;
+
+    bool found = false;
+    for (int i = 0; i < size; i++) {
+        if (db[i]->getNumber() == num) {
+            delete db[i];
+            db.erase(db.begin() + i);
+            size--;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Document not found!\n";
+    }
+}
+void createDocument(vector<Document*>& database, int& size, int documentNumber, const string& docType) {
+    // Check if the document already exists
+    for (int i = 0; i < size; i++) {
+        if (database[i]->getNumber() == to_string(documentNumber)) {
+            cout << "Document with the same number already exists.\n";
+            return;
+        }
+    }
+
+    // Create a new document
+    if (docType == "P") {
+        string country, firstName, lastName;
+        bool isStolen;
+        cout << "Enter the country: ";
+        cin >> country;
+        cout << "Enter First Name: ";
+        cin >> firstName;
+        cout << "Enter Last Name: ";
+        cin >> lastName;
+        cout << "Is the document stolen? (0 - No, 1 - Yes): ";
+        cin >> isStolen;
+        database.push_back(new Passport(to_string(documentNumber), country, firstName, lastName, isStolen));
+    }
+    else if (docType == "D") {
+        string category, firstName, lastName;
+        bool isStolen;
+        cout << "Enter the category: ";
+        cin >> category;
+        cout << "Enter First Name: ";
+        cin >> firstName;
+        cout << "Enter Last Name: ";
+        cin >> lastName;
+        cout << "Is the document stolen? (0 - No, 1 - Yes): ";
+        cin >> isStolen;
+        database.push_back(new DrivingLicense(to_string(documentNumber), category, firstName, lastName, isStolen));
+    }
+    else if (docType == "I") {
+        string authority, firstName, lastName;
+        bool isStolen;
+        cout << "Enter the issuing authority: ";
+        cin >> authority;
+        cout << "Enter First Name: ";
+        cin >> firstName;
+        cout << "Enter Last Name: ";
+        cin >> lastName;
+        cout << "Is the document stolen? (0 - No, 1 - Yes): ";
+        cin >> isStolen;
+        database.push_back(new IdentityCard(to_string(documentNumber), authority, firstName, lastName, isStolen));
+    }
+    else {
+        cout << "Invalid document type!\n";
+        return;
+    }
+
+    size++;
+
+    cout << "New document created successfully.\n";
+}
+
+int main() {
+    cout << "Welcome to the Police Database of Stolen Documents!" << endl;
+    cout << "Please enter your credentials to access the system." << endl;
+
+    int password;
+    cout << "Enter the password (the password is '1234'): ";
+    cin >> password;
+
+    if (password != 1234) {
+        cout << "Incorrect password! Access denied." << endl;
+        return 0;
+    }
+
+    cout << "Access granted. You are now logged into the police computer." << endl;
+
+    vector<Document*> database;
+    int size = 0; // database size is set to 0 at the beginning
+
+    char operation;
+    string docType; // Move the declaration of docType outside the do-while loop
+
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Search Document\n";
+        cout << "2. Update Document\n";
+        cout << "3. Add New Document\n";
+        cout << "4. Delete Document\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> operation;
+
+        switch (operation) {
+        case '1':
+           
+            searchDocument(database, size);
+            break;
+        case '2':
+            
+            updateDocument(database, size);
+            break;
+        case '3':
+            int documentNumber;
+            while (true) {
+                cout << "Enter the document number: ";
+                cin >> documentNumber;
+
+                if (cin.fail()) {
+                    cout << "Invalid input. Please enter a numeric value.\n";
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    continue;
+                }
+
+                if (documentNumber < 100000 || documentNumber > 999999) {
+                    cout << "Invalid document number. Please enter a 6-digit number without leading zeros.\n";
+                    continue;
+                }
+
+                break;
+            }
+
+            cout << "Enter the document type (P - Passport, D - Driving License, I - Identity Card): ";
+            cin >> docType;
+            createDocument(database, size, documentNumber, docType);
+            break;
+        case '4':
+            
+            deleteDocument(database, size);
+            break;
+        case '5':
+            cout << "Exiting the program...\n";
+            break;
+        default:
+            cout << "Invalid choice!\n";
+            break;
+        }
+    } while (operation != '5');
+
+    // Deallocate memory
+    for (int i = 0; i < size; i++) {
+        delete database[i];
+    }
+
+    return 0;
+}
